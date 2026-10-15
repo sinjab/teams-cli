@@ -23,3 +23,4 @@ docs/TEAMS_API.md
 
 # OS
 .DS_Store
+.backups/
