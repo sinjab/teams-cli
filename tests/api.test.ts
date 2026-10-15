@@ -11,6 +11,7 @@ import {
   markAsRead,
   pollConversations,
   pollMessages,
+  randomClientMessageId,
   resolveDriveItem,
   searchMessages,
   searchPeople,
@@ -387,5 +388,21 @@ describe("downloadTranscriptJson", () => {
     await downloadTranscriptJson(client, "https://dl/y");
     const fetchFn = client.fetch as ReturnType<typeof vi.fn>;
     expect(fetchFn.mock.calls[0][0]).toBe("https://dl/y?format=json");
+  });
+});
+
+describe("randomClientMessageId", () => {
+  it("always fits signed int64", () => {
+    const INT64_MAX = 2n ** 63n - 1n;
+    const MIN = 10n ** 18n;
+    for (let i = 0; i < 10_000; i++) {
+      const v = BigInt(randomClientMessageId());
+      expect(v).toBeGreaterThanOrEqual(MIN);
+      expect(v).toBeLessThanOrEqual(INT64_MAX);
+    }
+  });
+
+  it("produces a numeric string (no separators/exponents)", () => {
+    expect(randomClientMessageId()).toMatch(/^\d{19}$/);
   });
 });

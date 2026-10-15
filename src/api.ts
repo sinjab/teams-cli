@@ -1,12 +1,15 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import type { ApiClient } from "./client.js";
 
-function randomClientMessageId(): string {
+export function randomClientMessageId(): string {
+  // Must fit signed int64 (2^63 - 1); sampled exactly in BigInt — no float64
+  // anywhere in the path (the old version sampled up to 10^19 - 1, which
+  // overflows int64 for ~92% of values).
   const min = 10n ** 18n;
-  const max = 10n ** 19n - 1n;
-  const range = max - min;
-  const rand = BigInt(Math.floor(Math.random() * Number(range)));
-  return (min + rand).toString();
+  const max = 2n ** 63n - 1n;
+  const range = max - min + 1n;
+  const v = BigInt(`0x${randomBytes(8).toString("hex")}`) & max; // 63 bits
+  return (min + (v % range)).toString();
 }
 
 async function assertOk(resp: Response): Promise<void> {
